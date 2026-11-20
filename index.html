@@ -62,9 +62,33 @@
             position: absolute;
             touch-action: manipulation;
             cursor: pointer;
-            transition: transform 0.1s ease, background-color 0.15s ease;
+            transition: transform 0.1s ease, background-color 0.15s ease, opacity 0.2s ease;
             box-shadow: 0 8px 0 rgba(0, 0, 0, 0.25), 0 12px 20px rgba(0, 0, 0, 0.3);
             will-change: transform, top;
+        }
+
+        .falling-syllable:active {
+            transform: scale(0.94) translateY(4px);
+            box-shadow: 0 4px 0 rgba(0, 0, 0, 0.25), 0 6px 10px rgba(0, 0, 0, 0.3);
+        }
+
+        /* Paikallaan pysyvien tavukorttien tyyli (Helpoin taso) */
+        .static-syllable {
+            touch-action: manipulation;
+            cursor: pointer;
+            transition: transform 0.12s ease, background-color 0.15s ease, opacity 0.2s ease, filter 0.15s ease;
+            box-shadow: 0 8px 0 rgba(0, 0, 0, 0.28), 0 10px 18px rgba(0, 0, 0, 0.25);
+        }
+
+        .static-syllable:active:not(:disabled) {
+            transform: scale(0.95) translateY(4px);
+            box-shadow: 0 3px 0 rgba(0, 0, 0, 0.28);
+        }
+
+        /* Jäähy- ja lukitustila rämpytyksen estoon */
+        .syllable-cooldown {
+            filter: brightness(0.65) saturate(0.5);
+            cursor: not-allowed;
         }
 
         .falling-syllable:active {
@@ -160,22 +184,22 @@
 
         <!-- Vaikeusasteen valinta -->
         <div class="bg-slate-800/80 backdrop-blur-md border border-slate-700/80 rounded-3xl p-5 shadow-xl">
-            <h3 class="text-center text-sm font-black tracking-widest text-slate-400 mb-3">1. VALITSE NOPEUS (VAIKEUSASTE)</h3>
+            <h3 class="text-center text-sm font-black tracking-widest text-slate-400 mb-3">1. VALITSE VAIKEUSASTE</h3>
             <div class="grid grid-cols-3 gap-2.5">
                 <button onclick="selectDifficulty(1)" id="diff-btn-1" class="diff-btn flex flex-col items-center justify-center p-3 rounded-2xl border-2 border-emerald-500 bg-emerald-500/20 text-white transition-all">
                     <span class="text-2xl mb-1">🐢</span>
                     <span class="font-black text-sm sm:text-base">HELPPO</span>
-                    <span class="text-[11px] font-bold text-emerald-300">HIDAS (MAX 8⭐)</span>
+                    <span class="text-[11px] font-bold text-emerald-300 text-center leading-tight">PAIKALLAAN<br>(MAX 8⭐)</span>
                 </button>
                 <button onclick="selectDifficulty(2)" id="diff-btn-2" class="diff-btn flex flex-col items-center justify-center p-3 rounded-2xl border-2 border-slate-700 bg-slate-800/60 text-slate-300 transition-all">
                     <span class="text-2xl mb-1">🏃</span>
                     <span class="font-black text-sm sm:text-base">KESKI</span>
-                    <span class="text-[11px] font-bold text-slate-400">NORMAALI (MAX 9⭐)</span>
+                    <span class="text-[11px] font-bold text-slate-400 text-center leading-tight">HIDAS PUDOTUS<br>(MAX 9⭐)</span>
                 </button>
                 <button onclick="selectDifficulty(3)" id="diff-btn-3" class="diff-btn flex flex-col items-center justify-center p-3 rounded-2xl border-2 border-slate-700 bg-slate-800/60 text-slate-300 transition-all">
                     <span class="text-2xl mb-1">🚀</span>
                     <span class="font-black text-sm sm:text-base">VAIKEA</span>
-                    <span class="text-[11px] font-bold text-slate-400">NOPEA (MAX 10⭐)</span>
+                    <span class="text-[11px] font-bold text-slate-400 text-center leading-tight">NOPEA PUDOTUS<br>(MAX 10⭐)</span>
                 </button>
             </div>
         </div>
@@ -203,22 +227,28 @@
     <section id="view-game" class="hidden w-full h-[100dvh] max-w-2xl flex-col relative overflow-hidden">
         
         <!-- Pelin yläpalkki -->
-        <div class="w-full px-4 pt-3 pb-2 flex items-center justify-between z-20 bg-slate-900/80 backdrop-blur-sm border-b border-slate-800">
+        <div class="w-full px-3 sm:px-4 pt-3 pb-2 flex items-center justify-between gap-2 z-20 bg-slate-900/80 backdrop-blur-sm border-b border-slate-800">
             <button onclick="confirmExitGame()" class="px-3 py-2 bg-slate-800 hover:bg-slate-700 rounded-xl font-black text-xs sm:text-sm text-slate-300 border border-slate-700">
                 ✖ LOPETA
             </button>
 
             <!-- Edistymispallot (5 sanaa) -->
-            <div class="flex items-center gap-2" id="progress-dots">
-                <div class="w-4 h-4 rounded-full bg-slate-700 border-2 border-slate-600"></div>
-                <div class="w-4 h-4 rounded-full bg-slate-700 border-2 border-slate-600"></div>
-                <div class="w-4 h-4 rounded-full bg-slate-700 border-2 border-slate-600"></div>
-                <div class="w-4 h-4 rounded-full bg-slate-700 border-2 border-slate-600"></div>
-                <div class="w-4 h-4 rounded-full bg-slate-700 border-2 border-slate-600"></div>
+            <div class="flex items-center gap-1.5 sm:gap-2" id="progress-dots">
+                <div class="w-3.5 h-3.5 sm:w-4 sm:h-4 rounded-full bg-slate-700 border-2 border-slate-600"></div>
+                <div class="w-3.5 h-3.5 sm:w-4 sm:h-4 rounded-full bg-slate-700 border-2 border-slate-600"></div>
+                <div class="w-3.5 h-3.5 sm:w-4 sm:h-4 rounded-full bg-slate-700 border-2 border-slate-600"></div>
+                <div class="w-3.5 h-3.5 sm:w-4 sm:h-4 rounded-full bg-slate-700 border-2 border-slate-600"></div>
+                <div class="w-3.5 h-3.5 sm:w-4 sm:h-4 rounded-full bg-slate-700 border-2 border-slate-600"></div>
             </div>
 
-            <div class="px-3 py-1.5 bg-slate-800 rounded-xl border border-slate-700 font-black text-xs sm:text-sm text-amber-400">
-                PISTEET: <span id="live-score">100</span>
+            <!-- Kuuntele uudelleen -painike (rämpytysestolla) -->
+            <button id="replay-audio-btn" onclick="handleReplaySpeech()" class="px-3 py-2 bg-sky-500 hover:bg-sky-400 active:scale-95 disabled:opacity-50 text-slate-950 rounded-xl font-black text-xs sm:text-sm flex items-center gap-1 shadow transition-all" aria-label="Kuuntele haettava sana uudelleen">
+                <span>🔊</span>
+                <span class="hidden sm:inline">KUUNTELE</span>
+            </button>
+
+            <div class="px-2.5 py-1.5 bg-slate-800 rounded-xl border border-slate-700 font-black text-xs sm:text-sm text-amber-400">
+                <span id="live-score">100</span> P
             </div>
         </div>
 
@@ -234,16 +264,16 @@
 
             <!-- Kannustus- / virheviesti -->
             <div id="feedback-banner" class="h-8 mt-2 flex items-center justify-center">
-                <span id="feedback-text" class="font-black text-lg sm:text-xl tracking-wide text-amber-300 opacity-0 transition-opacity"></span>
+                <span id="feedback-text" class="font-black text-sm sm:text-lg tracking-wide text-amber-300 opacity-0 transition-opacity"></span>
             </div>
         </div>
 
-        <!-- Putoavien tavujen pelikenttä -->
+        <!-- Putoavien tai paikallaan pysyvien tavujen pelikenttä -->
         <div id="falling-area" class="relative flex-1 w-full overflow-hidden">
-            <!-- Putoavat napit generoidaan tähän JavaScriptillä -->
+            <!-- Tavupainikkeet generoidaan tähän JavaScriptillä -->
             
-            <!-- Alareunan varoitusviiva -->
-            <div class="absolute bottom-0 left-0 right-0 h-3 bg-gradient-to-r from-rose-500/40 via-amber-500/40 to-rose-500/40 border-t border-rose-500/50"></div>
+            <!-- Alareunan varoitusviiva (piilotetaan paikallaan olevassa tilassa) -->
+            <div id="bottom-danger-line" class="absolute bottom-0 left-0 right-0 h-3 bg-gradient-to-r from-rose-500/40 via-amber-500/40 to-rose-500/40 border-t border-rose-500/50"></div>
         </div>
 
         <!-- Oikean vastauksen juhla-overlay (kun sana valmistuu) -->
@@ -380,9 +410,9 @@
                 <div class="bg-slate-900/90 p-3.5 rounded-2xl border border-slate-700 space-y-2">
                     <p class="text-sky-400 font-black">2. VAIKEUSASTEKERROIN:</p>
                     <ul class="list-disc list-inside text-xs sm:text-sm space-y-1 text-slate-300">
-                        <li>🐢 <strong>HELPPO (HIDAS):</strong> KERROIN <strong>0.8x</strong> → MAX <strong>8 TÄHTEÄ</strong></li>
-                        <li>🏃 <strong>KESKITASO (NORMAALI):</strong> KERROIN <strong>0.9x</strong> → MAX <strong>9 TÄHTEÄ</strong></li>
-                        <li>🚀 <strong>VAIKEA (NOPEA):</strong> KERROIN <strong>1.0x</strong> → MAX <strong>10 TÄHTEÄ</strong></li>
+                        <li>🐢 <strong>HELPPO (PAIKALLAAN):</strong> KERROIN <strong>0.8x</strong> → MAX <strong>8 TÄHTEÄ</strong></li>
+                        <li>🏃 <strong>KESKITASO (HIDAS PUDOTUS):</strong> KERROIN <strong>0.9x</strong> → MAX <strong>9 TÄHTEÄ</strong></li>
+                        <li>🚀 <strong>VAIKEA (NOPEA PUDOTUS):</strong> KERROIN <strong>1.0x</strong> → MAX <strong>10 TÄHTEÄ</strong></li>
                     </ul>
                 </div>
 
@@ -471,16 +501,26 @@
         // Sovelluksen tilamuuttujat
         let wordList = [];
         let totalStars = 0;
-        let selectedDifficulty = 1; // 1 = Helppo, 2 = Keskitaso, 3 = Vaikea
+        let selectedDifficulty = 1; // 1 = Helppo (paikallaan), 2 = Keskitaso (hidas), 3 = Vaikea (nopea)
 
-        // Vaikeusasteiden asetukset (putoamisaika sekunteina ja pistekerroin)
-        const DIFFICULTY_CONFIG = {
-            1: { name: "HELPPO", durationSec: 11.0, multiplier: 0.8, count: 3 },
-            2: { name: "KESKITASO", durationSec: 6.5, multiplier: 0.9, count: 4 },
-            3: { name: "VAIKEA", durationSec: 4.0, multiplier: 1.0, count: 4 }
+        // Puhesynteesin koodivakio (äänen voi vaihtaa suoraan tästä koodissa halutessaan)
+        const SPEECH_CONFIG = {
+            lang: 'fi-FI',
+            preferredVoiceName: '', // Esim. 'Satu', 'Onni' tai 'Google suomi' (tyhjä = laitteen oletus fi-FI)
+            rate: 0.88,
+            pitch: 1.05
         };
 
-        // Pelin tila
+        // Vaikeusasteiden asetukset:
+        // staticMode: true -> tavut eivät liiku lainkaan (Taso 1)
+        // staticMode: false -> tavut putoavat durationSec-ajassa (Tasot 2 ja 3)
+        const DIFFICULTY_CONFIG = {
+            1: { name: "HELPPO (PAIKALLAAN)", staticMode: true, durationSec: 0, multiplier: 0.8, count: 4 },
+            2: { name: "KESKITASO (HIDAS)", staticMode: false, durationSec: 8.5, multiplier: 0.9, count: 4 },
+            3: { name: "VAIKEA (NOPEA)", staticMode: false, durationSec: 4.5, multiplier: 1.0, count: 4 }
+        };
+
+        // Pelin tila sekä rämpytyksen / monikosketuksen eston tilamuuttujat
         let gameState = {
             active: false,
             roundWords: [],
@@ -492,7 +532,10 @@
             fallingItems: [],
             animationFrameId: null,
             lastTimestamp: 0,
-            roundResolved: false
+            isRoundLocked: false,      // Lukitsee kaikki painikkeet kun oikea vastaus on annettu
+            isPenaltyCooldown: false,  // Lukitsee kaikki painikkeet hetkeksi väärän painalluksen jälkeen
+            penaltyTimerId: null,
+            speechCooldown: false      // Estää kaiutinpainikkeen rämpyttämisen
         };
 
         // Web Audio API -ääniefektit
@@ -505,10 +548,28 @@
             loadFromStorage();
             updateUIStats();
             renderWordList();
+            setupMultiTouchGuard();
         };
 
         /**
-         * Lataa tallennetut sanat ja tähtisaldoselaimen localStorage-muistista
+         * Monikosketuksen esto (Anti-Multi-Touch):
+         * Estää usean sormen yhtäaikaisen painamisen pelialueella, jottei lapsi voi
+         * painaa kaikkia neljää tavupainiketta yhtä aikaa.
+         */
+        function setupMultiTouchGuard() {
+            const fallingArea = document.getElementById('falling-area');
+            if (!fallingArea) return;
+
+            fallingArea.addEventListener('touchstart', (e) => {
+                if (e.touches && e.touches.length > 1) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                }
+            }, { passive: false, capture: true });
+        }
+
+        /**
+         * Lataa sanalistan ja kerätyt tähdet selaimen localStorage-muistista
          */
         function loadFromStorage() {
             try {
@@ -540,23 +601,28 @@
         function saveToStorage() {
             try {
                 localStorage.setItem('tavupeli_words_v1', JSON.stringify(wordList));
-                localStorage.setItem('tavupeli_stars_v1', totalStars.toString());
+                localStorage.setItem('tavupeli_stars_v1', String(totalStars));
             } catch (e) {
-                console.error("Tallennus epäonnistui:", e);
+                console.warn("Tallennus epäonnistui:", e);
             }
         }
 
         /**
-         * Päivittää tähtien ja sanojen määrän käyttöliittymään
+         * Päivittää tilastot valikkoon ja sanalistan laskureihin
          */
         function updateUIStats() {
-            document.getElementById('total-stars-display').textContent = totalStars;
-            document.getElementById('word-count-badge').textContent = wordList.length;
-            document.getElementById('list-total-count').textContent = wordList.length;
+            const starsEl = document.getElementById('total-stars-display');
+            if (starsEl) starsEl.textContent = totalStars;
+
+            const badgeEl = document.getElementById('word-count-badge');
+            if (badgeEl) badgeEl.textContent = wordList.length;
+
+            const totalListEl = document.getElementById('list-total-count');
+            if (totalListEl) totalListEl.textContent = wordList.length;
         }
 
         /**
-         * Vaihtaa näkyvän näkymän
+         * Vaihtaa aktiivista näkymää
          */
         function showView(viewId) {
             const views = ['view-menu', 'view-game', 'view-results', 'view-words', 'view-rules'];
@@ -574,202 +640,217 @@
                 target.classList.add('flex');
             }
 
-            // Hallitaan yläpalkin näkyvyyttä ja sivun vierityslukitusta
             const header = document.getElementById('main-header');
-            if (viewId === 'view-game') {
-                header.classList.add('hidden');
-                document.body.classList.add('game-active');
-            } else {
-                header.classList.remove('hidden');
-                document.body.classList.remove('game-active');
+            if (header) {
+                if (viewId === 'view-game') {
+                    header.classList.add('hidden');
+                    document.body.classList.add('game-active');
+                } else {
+                    header.classList.remove('hidden');
+                    document.body.classList.remove('game-active');
+                }
             }
-
-            if (viewId === 'view-words') {
-                renderWordList();
-            }
-            updateUIStats();
         }
 
         /**
-         * Vaikeusasteen valinta aloitusruudussa
+         * Vaikeusasteen valinta (1 = Helppo, 2 = Keski, 3 = Vaikea)
          */
         function selectDifficulty(level) {
             selectedDifficulty = level;
             [1, 2, 3].forEach(lvl => {
                 const btn = document.getElementById(`diff-btn-${lvl}`);
+                if (!btn) return;
                 if (lvl === level) {
-                    btn.className = "diff-btn flex flex-col items-center justify-center p-3 rounded-2xl border-2 border-emerald-500 bg-emerald-500/20 text-white transition-all scale-[1.02] shadow-lg";
-                    btn.querySelector('span:last-child').className = "text-[11px] font-bold text-emerald-300";
+                    btn.className = "diff-btn flex flex-col items-center justify-center p-3 rounded-2xl border-2 border-emerald-500 bg-emerald-500/20 text-white transition-all";
                 } else {
                     btn.className = "diff-btn flex flex-col items-center justify-center p-3 rounded-2xl border-2 border-slate-700 bg-slate-800/60 text-slate-300 transition-all";
-                    btn.querySelector('span:last-child').className = "text-[11px] font-bold text-slate-400";
                 }
             });
-            playTone(520, 0.08, 'sine');
         }
 
         /**
-         * Aloittaa uuden 5 sanan pelisarjan
+         * Käynnistää uuden 5 sanan pelisarjan
          */
         function startGame() {
-            if (wordList.length < 5) {
-                showModal("SANALISTASSA ON OLTAVA VÄHINTÄÄN 5 SANAA!", [{ text: "OK", action: closeModal }]);
-                return;
+            initAudio();
+            if (!Array.isArray(wordList) || wordList.length < 5) {
+                wordList = [...DEFAULT_WORDS];
             }
 
-            // Alustetaan äänikonteksti käyttäjän kosketuksesta (iOS/Android vaatimus)
-            initAudio();
-
-            // Arvotaan 5 uniikkia sanaa listalta
+            // Sekoitetaan ja valitaan 5 satunnaista sanaa
             const shuffled = [...wordList].sort(() => Math.random() - 0.5);
-            gameState = {
-                active: true,
-                roundWords: shuffled.slice(0, 5),
-                currentIndex: 0,
-                currentWord: null,
-                wordPoints: 20,
-                totalBasePoints: 0,
-                mistakesCount: 0,
-                fallingItems: [],
-                animationFrameId: null,
-                lastTimestamp: 0,
-                roundResolved: false
-            };
+            gameState.roundWords = shuffled.slice(0, 5);
+            gameState.currentIndex = 0;
+            gameState.totalBasePoints = 0;
+            gameState.mistakesCount = 0;
+            gameState.active = true;
 
+            document.getElementById('live-score').textContent = '0';
             showView('view-game');
-            updateProgressDots();
-            updateLiveScoreDisplay();
-            loadWordRound();
+            startWordRound();
         }
 
         /**
-         * Lataa nykyisen vuoron sanan ja käynnistää tavujen putoamisen
+         * Aloittaa yksittäisen sanan kierroksen
          */
-        function loadWordRound() {
+        function startWordRound() {
             stopFallingAnimation();
-            document.getElementById('word-success-overlay').classList.add('hidden');
-            
-            gameState.roundResolved = false;
+            clearTimeout(gameState.penaltyTimerId);
+
+            gameState.isRoundLocked = false;
+            gameState.isPenaltyCooldown = false;
             gameState.wordPoints = 20;
             gameState.currentWord = gameState.roundWords[gameState.currentIndex];
 
-            // Näytetään sanan ensimmäinen tavu
-            document.getElementById('first-syllable').textContent = gameState.currentWord[0];
+            const [firstSyl, secondSyl] = gameState.currentWord;
+
+            // Päivitetään kohdesanakortti ja yläpalkki
+            document.getElementById('first-syllable').textContent = firstSyl;
             const slot = document.getElementById('second-syllable-slot');
-            slot.innerHTML = `<span class="text-3xl sm:text-5xl font-black text-sky-400/40">?</span>`;
+            slot.innerHTML = '<span class="text-3xl sm:text-5xl font-black text-sky-400/40">?</span>';
             slot.className = "min-w-[110px] sm:min-w-[150px] h-14 sm:h-20 bg-slate-900/90 border-3 border-dashed border-sky-400/70 rounded-2xl flex items-center justify-center";
 
-            const card = document.getElementById('target-word-card');
-            card.className = "w-full bg-slate-800/95 border-4 border-sky-500/60 rounded-3xl py-4 px-6 shadow-2xl flex items-center justify-center gap-3 transition-all";
-
+            document.getElementById('word-success-overlay').classList.add('hidden');
+            updateProgressDots(false);
             hideFeedbackBanner();
-            spawnFallingSyllables();
+
+            // Luodaan 1 oikea ja 3 harhauttavaa lopputavua
+            const distractors = pickDistractorSyllables(secondSyl, 3);
+            const options = [
+                { text: secondSyl, isCorrect: true },
+                ...distractors.map(t => ({ text: t, isCorrect: false }))
+            ].sort(() => Math.random() - 0.5);
+
+            renderSyllableChoices(options);
+
+            // Lausutaan haettava sana heti kierroksen alussa
+            setTimeout(() => {
+                if (gameState.active && !gameState.isRoundLocked) {
+                    speakCurrentWord();
+                }
+            }, 220);
         }
 
         /**
-         * Luo putoavat tavuvaihtoehdot pelialueelle
+         * Valitsee satunnaisia harhauttavia lopputavuja sanalistasta
          */
-        function spawnFallingSyllables() {
-            const container = document.getElementById('falling-area');
-            // Poistetaan vanhat putoavat elementit
-            container.querySelectorAll('.falling-syllable').forEach(el => el.remove());
+        function pickDistractorSyllables(correctSyl, count) {
+            const pool = [...new Set(wordList.map(w => w[1]).filter(s => s !== correctSyl))];
+            pool.sort(() => Math.random() - 0.5);
+            return pool.slice(0, count);
+        }
+
+        /**
+         * Luo tavupainikkeet joko paikalleen (Taso 1) tai putoaviksi (Tasot 2 & 3)
+         */
+        function renderSyllableChoices(options) {
+            const area = document.getElementById('falling-area');
+            const dangerLine = document.getElementById('bottom-danger-line');
+            area.querySelectorAll('.syllable-choice-wrapper, .falling-syllable').forEach(el => el.remove());
             gameState.fallingItems = [];
 
-            const config = DIFFICULTY_CONFIG[selectedDifficulty];
-            const correctSecond = gameState.currentWord[1];
-
-            // Kerätään häiriötavut muista sanoista (varmistetaan ettei tule duplikaatteja)
-            const allSecondSyllables = [...new Set(wordList.map(w => w[1]))].filter(s => s !== correctSecond);
-            const shuffledDistractors = allSecondSyllables.sort(() => Math.random() - 0.5);
-            
-            const options = [correctSecond, ...shuffledDistractors.slice(0, config.count - 1)];
-            // Sekoitetaan järjestys
-            options.sort(() => Math.random() - 0.5);
-
-            const areaWidth = container.clientWidth || window.innerWidth;
-            const areaHeight = container.clientHeight || (window.innerHeight * 0.65);
-            const laneWidth = areaWidth / options.length;
-
-            // Väripaletti putoaville tavuille
-            const colors = [
-                "bg-amber-400 text-slate-950 border-b-4 border-amber-600",
-                "bg-sky-400 text-slate-950 border-b-4 border-sky-600",
-                "bg-purple-400 text-slate-950 border-b-4 border-purple-600",
-                "bg-pink-400 text-slate-950 border-b-4 border-pink-600"
+            const config = DIFFICULTY_CONFIG[selectedDifficulty] || DIFFICULTY_CONFIG[1];
+            const cardColors = [
+                'bg-sky-500 border-sky-300 text-slate-950',
+                'bg-amber-400 border-amber-200 text-slate-950',
+                'bg-violet-500 border-violet-300 text-white',
+                'bg-teal-400 border-teal-200 text-slate-950'
             ];
 
-            options.forEach((syllableText, index) => {
-                const btn = document.createElement('button');
-                btn.type = 'button';
-                const colorClass = colors[index % colors.length];
-                btn.className = `falling-syllable ${colorClass} rounded-2xl font-black text-2xl sm:text-4xl px-4 py-4 sm:py-5 flex items-center justify-center tracking-wider`;
-                btn.textContent = syllableText;
+            if (config.staticMode) {
+                // Taso 1: Paikallaan pysyvä 2x2-ruudukko ilman liikettä
+                if (dangerLine) dangerLine.classList.add('hidden');
 
-                // Sijoitetaan tavut vierekkäisille kaistoille, jotta ne eivät mene päällekkäin
-                const btnWidth = Math.min(laneWidth - 14, 150);
-                const leftPos = (index * laneWidth) + (laneWidth - btnWidth) / 2;
-                // Pieni korkeusvaihtelu tekee putoamisesta luonnollisemman
-                const startY = -75 - (index % 2) * 35;
+                const grid = document.createElement('div');
+                grid.className = "syllable-choice-wrapper w-full h-full grid grid-cols-2 gap-3 sm:gap-4 p-4 sm:p-6 content-center";
 
-                btn.style.width = `${btnWidth}px`;
-                btn.style.left = `${Math.max(6, leftPos)}px`;
-                btn.style.top = `${startY}px`;
+                options.forEach((opt, idx) => {
+                    const btn = document.createElement('button');
+                    btn.type = 'button';
+                    btn.textContent = opt.text;
+                    btn.className = `static-syllable h-24 sm:h-32 rounded-3xl border-b-4 font-black text-3xl sm:text-5xl tracking-wider flex items-center justify-center ${cardColors[idx % cardColors.length]}`;
 
-                // Kosketus- ja klikkaustapahtuma
-                const handleTap = (e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    handleSyllableChoice(syllableText, btn);
-                };
-                btn.addEventListener('pointerdown', handleTap);
+                    const itemObj = { el: btn, isCorrect: opt.isCorrect, eliminated: false };
+                    btn.addEventListener('pointerdown', (e) => handleSyllableTap(e, itemObj));
 
-                container.appendChild(btn);
-
-                gameState.fallingItems.push({
-                    el: btn,
-                    text: syllableText,
-                    y: startY,
-                    speed: (areaHeight + 120) / config.durationSec,
-                    isCorrect: syllableText === correctSecond,
-                    eliminated: false
+                    grid.appendChild(btn);
+                    gameState.fallingItems.push(itemObj);
                 });
-            });
 
-            gameState.lastTimestamp = performance.now();
-            gameState.animationFrameId = requestAnimationFrame(updateFallingLoop);
+                area.appendChild(grid);
+            } else {
+                // Tasot 2 ja 3: Putoavat tavukortit
+                if (dangerLine) dangerLine.classList.remove('hidden');
+
+                const areaWidth = area.clientWidth || Math.min(window.innerWidth, 672);
+                const colWidth = areaWidth / options.length;
+
+                options.forEach((opt, idx) => {
+                    const btn = document.createElement('button');
+                    btn.type = 'button';
+                    btn.textContent = opt.text;
+                    btn.className = `falling-syllable rounded-2xl sm:rounded-3xl border-b-4 font-black text-2xl sm:text-4xl tracking-wider py-4 sm:py-5 px-2 flex items-center justify-center ${cardColors[idx % cardColors.length]}`;
+
+                    const widthPx = Math.max(72, Math.min(135, colWidth - 12));
+                    const leftPx = idx * colWidth + (colWidth - widthPx) / 2;
+                    const startY = -80 - idx * 38;
+
+                    btn.style.width = `${widthPx}px`;
+                    btn.style.left = `${leftPx}px`;
+                    btn.style.top = `${startY}px`;
+
+                    const itemObj = {
+                        el: btn,
+                        isCorrect: opt.isCorrect,
+                        eliminated: false,
+                        y: startY
+                    };
+
+                    btn.addEventListener('pointerdown', (e) => handleSyllableTap(e, itemObj));
+                    area.appendChild(btn);
+                    gameState.fallingItems.push(itemObj);
+                });
+
+                startFallingLoop(config.durationSec);
+            }
         }
 
         /**
-         * Animaatiosilmukka putoaville tavuille
+         * Putoamisanimaation silmukka (Tasot 2 & 3)
          */
-        function updateFallingLoop(timestamp) {
-            if (!gameState.active || gameState.roundResolved) return;
+        function startFallingLoop(durationSec) {
+            const area = document.getElementById('falling-area');
+            gameState.lastTimestamp = performance.now();
 
-            const dt = (timestamp - gameState.lastTimestamp) / 1000;
-            gameState.lastTimestamp = timestamp;
+            function step(now) {
+                if (!gameState.active || gameState.isRoundLocked) return;
 
-            const container = document.getElementById('falling-area');
-            const limitY = container.clientHeight - 20;
-            let missedCorrect = false;
+                const dt = Math.min((now - gameState.lastTimestamp) / 1000, 0.1);
+                gameState.lastTimestamp = now;
 
-            for (const item of gameState.fallingItems) {
-                if (item.eliminated) continue;
-                item.y += item.speed * dt;
-                item.el.style.top = `${item.y}px`;
+                const areaHeight = area.clientHeight || 420;
+                const speedPxPerSec = (areaHeight + 90) / durationSec;
+                let anyMissed = false;
 
-                if (item.y > limitY) {
-                    if (item.isCorrect) {
-                        missedCorrect = true;
+                gameState.fallingItems.forEach(item => {
+                    if (item.eliminated) return;
+                    item.y += speedPxPerSec * dt;
+                    item.el.style.top = `${item.y}px`;
+
+                    if (item.y > areaHeight - 55) {
+                        anyMissed = true;
                     }
+                });
+
+                if (anyMissed) {
+                    handleSyllablesReachedBottom();
+                    return;
                 }
+
+                gameState.animationFrameId = requestAnimationFrame(step);
             }
 
-            if (missedCorrect) {
-                handleMissedSyllables();
-                return;
-            }
-
-            gameState.animationFrameId = requestAnimationFrame(updateFallingLoop);
+            gameState.animationFrameId = requestAnimationFrame(step);
         }
 
         function stopFallingAnimation() {
@@ -780,85 +861,94 @@
         }
 
         /**
-         * Käsittelee tilanteen, jossa oikea tavu ehtii pudota alareunan yli
+         * Käsittelee tilanteen, jossa tavut ehtivät ruudun alareunaan
          */
-        function handleMissedSyllables() {
-            stopFallingAnimation();
+        function handleSyllablesReachedBottom() {
+            if (gameState.isRoundLocked) return;
             playErrorSound();
-            
             gameState.mistakesCount++;
             gameState.wordPoints = Math.max(5, gameState.wordPoints - 5);
-            updateLiveScoreDisplay();
 
-            showFeedbackBanner("OHO! TAVU PUTOSI OHI – YRITÄ UUDELLEEN!", "text-amber-400");
-            
-            // Käynnistetään samat tavut uudelleen ylhäältä hetken kuluttua
-            setTimeout(() => {
-                if (gameState.active && !gameState.roundResolved) {
-                    spawnFallingSyllables();
-                }
-            }, 650);
+            showFeedbackBanner("TAVUT PUTOSIVAT! KOKEILLAAN UUDELLEEN!", "text-rose-400");
+
+            gameState.fallingItems.forEach((item, idx) => {
+                item.y = -75 - idx * 35;
+                item.el.style.top = `${item.y}px`;
+            });
+
+            const config = DIFFICULTY_CONFIG[selectedDifficulty] || DIFFICULTY_CONFIG[2];
+            startFallingLoop(config.durationSec);
         }
 
         /**
-         * Käsittelee käyttäjän tavuvalinnan
+         * Käsittelee tavupainikkeen napautuksen (sisältää rämpytyksen ja monikosketuksen eston)
          */
-        function handleSyllableChoice(chosenText, btnElement) {
-            if (gameState.roundResolved) return;
+        function handleSyllableTap(e, itemObj) {
+            if (e) {
+                e.preventDefault();
+                if (e.isPrimary === false) return;
+            }
 
-            const correctSecond = gameState.currentWord[1];
+            if (!gameState.active || gameState.isRoundLocked || gameState.isPenaltyCooldown || itemObj.eliminated) {
+                return;
+            }
 
-            if (chosenText === correctSecond) {
-                // OIKEA VASTAUS!
-                gameState.roundResolved = true;
+            if (itemObj.isCorrect) {
+                // OIKEA VASTAUS: Lukitaan kaikki napit välittömästi
+                gameState.isRoundLocked = true;
                 stopFallingAnimation();
+                clearTimeout(gameState.penaltyTimerId);
+                playSuccessSound();
 
                 gameState.totalBasePoints += gameState.wordPoints;
-                updateLiveScoreDisplay();
+                document.getElementById('live-score').textContent = gameState.totalBasePoints;
 
-                // Päivitetään sanakortti vihreäksi ja yhdistetään tavut
                 const fullWord = gameState.currentWord[0] + gameState.currentWord[1];
                 const slot = document.getElementById('second-syllable-slot');
-                slot.innerHTML = `<span class="text-4xl sm:text-6xl font-black text-emerald-400">${correctSecond}</span>`;
+                slot.innerHTML = `<span class="text-4xl sm:text-6xl font-black tracking-wider text-emerald-400">${gameState.currentWord[1]}</span>`;
                 slot.className = "min-w-[110px] sm:min-w-[150px] h-14 sm:h-20 bg-emerald-500/20 border-3 border-emerald-400 rounded-2xl flex items-center justify-center";
 
-                const card = document.getElementById('target-word-card');
-                card.className = "w-full bg-emerald-950/90 border-4 border-emerald-400 rounded-3xl py-4 px-6 shadow-2xl flex items-center justify-center gap-2 glow-success";
-
-                // Ääni- ja konfettiefektit
-                playSuccessSound();
+                updateProgressDots(true);
                 launchConfetti();
                 speakCurrentWord();
 
-                // Päivitetään edistymispallot
-                updateProgressDots(true);
-
-                // Näytetään juhlaikkuna pienen hetken kuluttua, jotta lapsi näkee yhdistymisen
                 setTimeout(() => {
                     showWordSuccessOverlay(fullWord);
-                }, 450);
-
+                }, 420);
             } else {
-                // VÄÄRÄ VASTAUS
+                // VÄÄRÄ VASTAUS: Poistetaan väärä nappi ja asetetaan 650 ms yleisjäähy kaikille napeille
                 playErrorSound();
+                itemObj.eliminated = true;
+                itemObj.el.style.opacity = '0.25';
+                itemObj.el.style.pointerEvents = 'none';
+                itemObj.el.classList.add('animate-shake');
+
                 gameState.mistakesCount++;
                 gameState.wordPoints = Math.max(5, gameState.wordPoints - 5);
-                updateLiveScoreDisplay();
+                gameState.isPenaltyCooldown = true;
 
-                // Visuaalinen ravistus ja napin poisto käytöstä
-                btnElement.classList.add('animate-shake', 'bg-rose-600', 'text-white', 'opacity-40');
-                btnElement.style.pointerEvents = 'none';
+                gameState.fallingItems.forEach(item => {
+                    if (!item.eliminated) {
+                        item.el.classList.add('syllable-cooldown');
+                        item.el.style.pointerEvents = 'none';
+                    }
+                });
 
-                const itemObj = gameState.fallingItems.find(i => i.el === btnElement);
-                if (itemObj) itemObj.eliminated = true;
+                showFeedbackBanner("EI AIVAN! KUUNTELE SANA JA ODOTA HETKI...", "text-rose-400");
 
-                const card = document.getElementById('target-word-card');
-                card.classList.add('animate-shake', 'border-rose-500');
-                setTimeout(() => {
-                    card.classList.remove('animate-shake', 'border-rose-500');
-                }, 450);
-
-                showFeedbackBanner("EI AIVAN! KOKEILE TOISTA TAVUA!", "text-rose-400");
+                clearTimeout(gameState.penaltyTimerId);
+                gameState.penaltyTimerId = setTimeout(() => {
+                    gameState.isPenaltyCooldown = false;
+                    if (!gameState.isRoundLocked) {
+                        gameState.fallingItems.forEach(item => {
+                            if (!item.eliminated) {
+                                item.el.classList.remove('syllable-cooldown');
+                                item.el.style.pointerEvents = 'auto';
+                            }
+                        });
+                        showFeedbackBanner("KOKEILE NYT UUDELLEEN!", "text-amber-300");
+                    }
+                }, 650);
             }
         }
 
@@ -866,19 +956,12 @@
          * Näyttää onnitteluikkunan kun sana on ratkaistu oikein
          */
         function showWordSuccessOverlay(fullWord) {
-            const praises = ["HIENOA!", "LOISTAVAA!", "MAHTAVAA!", "UPEAA LUKEMISTA!", "TÄYDELLINEN OSUMIA!"];
-            const emojis = ["🎉", "🏒", "⚽", "🌟", "🔥"];
-            
-            document.getElementById('success-praise').textContent = praises[Math.floor(Math.random() * praises.length)];
-            document.getElementById('success-emoji').textContent = emojis[Math.floor(Math.random() * emojis.length)];
+            const praises = ["MAHTAVAA!", "HIENOA TYÖTÄ!", "TÄYSI OSUMA!", "LOISTAVAA!", "SUPER!"];
+            document.getElementById('success-praise').textContent = praises[gameState.currentIndex % praises.length];
             document.getElementById('completed-word-display').textContent = fullWord;
 
             const nextBtn = document.getElementById('next-word-btn');
-            if (gameState.currentIndex >= 4) {
-                nextBtn.textContent = "KATSO TULOKSET & TÄHDET 🏆";
-            } else {
-                nextBtn.textContent = "SEURAAVA SANA ➔";
-            }
+            nextBtn.textContent = gameState.currentIndex >= 4 ? "NÄYTÄ TULOKSET 🏆" : "SEURAAVA SANA ➔";
 
             document.getElementById('word-success-overlay').classList.remove('hidden');
         }
@@ -887,96 +970,47 @@
          * Siirtyy seuraavaan sanaan tai sarjan tuloksiin
          */
         function nextWord() {
-            gameState.currentIndex++;
-            if (gameState.currentIndex < 5) {
-                updateProgressDots();
-                loadWordRound();
+            if (gameState.currentIndex < 4) {
+                gameState.currentIndex++;
+                startWordRound();
             } else {
                 finishGameSeries();
             }
         }
 
         /**
-         * Päättää 5 sanan sarjan ja laskee tähdet (1–10)
+         * Laskee 5 sanan sarjan lopputuloksen ja 1–10 tähteä
          */
         function finishGameSeries() {
             gameState.active = false;
             stopFallingAnimation();
 
-            const config = DIFFICULTY_CONFIG[selectedDifficulty];
-            const basePoints = gameState.totalBasePoints; // Maksimi 100p (5 * 20p)
-            const weightedScore = Math.round(basePoints * config.multiplier);
-            
-            // Lasketaan tähdet välille 1 - 10
-            const earnedStars = Math.max(1, Math.min(10, Math.round(weightedScore / 10)));
+            const config = DIFFICULTY_CONFIG[selectedDifficulty] || DIFFICULTY_CONFIG[1];
+            const weightedScore = Math.round(gameState.totalBasePoints * config.multiplier);
+            const earnedStars = Math.min(10, Math.max(1, Math.round(weightedScore / 10)));
 
-            // Tallennetaan ansaitut tähdet kokonaissaldoon
             totalStars += earnedStars;
             saveToStorage();
             updateUIStats();
 
-            // Päivitetään tulosnäkymän tiedot
             document.getElementById('earned-stars-count').textContent = earnedStars;
-            document.getElementById('res-base-points').textContent = `${basePoints} / 100 P`;
+            document.getElementById('res-base-points').textContent = `${gameState.totalBasePoints} / 100 P`;
             document.getElementById('res-mistakes').textContent = `${gameState.mistakesCount} KPL`;
             document.getElementById('res-multiplier').textContent = `${config.multiplier.toFixed(1)}x (${config.name})`;
-            document.getElementById('res-final-score').textContent = `${weightedScore} P`;
+            document.getElementById('res-final-score').textContent = `${weightedScore} / 100 P`;
 
-            // Kannustava alaotsikko tähtimäärän mukaan
-            let subtitle = "HYVÄ HARJOITUS!";
-            if (earnedStars >= 9) subtitle = "MESTARITASON SUORITUS! 🏆";
-            else if (earnedStars >= 7) subtitle = "TODEN TEKOLLA HIENOA TYÖTÄ! 🌟";
-            else if (earnedStars >= 5) subtitle = "HYVÄ VAUHTI PÄÄLLÄ! 👍";
-            document.getElementById('result-subtitle').textContent = subtitle;
-
-            // Piirretään 10 tähteä (ansaitut keltaisena, loput himmeänä)
             const starsContainer = document.getElementById('stars-container');
             starsContainer.innerHTML = '';
             for (let i = 1; i <= 10; i++) {
                 const span = document.createElement('span');
-                if (i <= earnedStars) {
-                    span.textContent = '⭐';
-                    span.className = 'animate-pop inline-block';
-                    span.style.animationDelay = `${i * 0.08}s`;
-                } else {
-                    span.textContent = '☆';
-                    span.className = 'text-slate-600 inline-block';
-                }
+                span.textContent = i <= earnedStars ? '⭐' : '☆';
+                span.className = i <= earnedStars ? 'text-amber-400' : 'text-slate-600';
                 starsContainer.appendChild(span);
             }
 
             playVictoryFanfare();
             launchConfetti();
             showView('view-results');
-        }
-
-        /**
-         * Lausuu nykyisen oikean sanan suomeksi Web Speech API:lla
-         */
-        function speakCurrentWord() {
-            if (!gameState.currentWord) return;
-            const fullWord = (gameState.currentWord[0] + gameState.currentWord[1]).toLowerCase();
-
-            if ('speechSynthesis' in window) {
-                try {
-                    window.speechSynthesis.cancel();
-                    const utterance = new SpeechSynthesisUtterance(fullWord);
-                    utterance.lang = 'fi-FI';
-                    utterance.rate = 0.88; // Hieman rauhallisempi puhenopeus lapselle
-                    utterance.pitch = 1.05;
-
-                    // Etsitään suomenkielinen ääni jos saatavilla
-                    const voices = window.speechSynthesis.getVoices();
-                    const fiVoice = voices.find(v => v.lang.toLowerCase().includes('fi'));
-                    if (fiVoice) {
-                        utterance.voice = fiVoice;
-                    }
-
-                    window.speechSynthesis.speak(utterance);
-                } catch (e) {
-                    console.warn("Puhesynteesi ei käytettävissä:", e);
-                }
-            }
         }
 
         // Ladataan puheäänet valmiiksi (tarpeen Chrome/Android-selaimissa)
@@ -990,31 +1024,87 @@
          * Päivittää pelin yläpalkin 5 edistymispalloa
          */
         function updateProgressDots(currentCompleted = false) {
-            const dots = document.getElementById('progress-dots').children;
-            for (let i = 0; i < 5; i++) {
-                if (i < gameState.currentIndex || (i === gameState.currentIndex && currentCompleted)) {
-                    dots[i].className = "w-4 h-4 rounded-full bg-emerald-400 border-2 border-emerald-200 shadow-[0_0_8px_#34d399]";
-                } else if (i === gameState.currentIndex) {
-                    dots[i].className = "w-4 h-4 rounded-full bg-sky-400 border-2 border-white animate-pulse";
+            const dots = document.querySelectorAll('#progress-dots > div');
+            dots.forEach((dot, idx) => {
+                if (idx < gameState.currentIndex || (idx === gameState.currentIndex && currentCompleted)) {
+                    dot.className = "w-3.5 h-3.5 sm:w-4 sm:h-4 rounded-full bg-emerald-400 border-2 border-emerald-200 shadow";
+                } else if (idx === gameState.currentIndex) {
+                    dot.className = "w-3.5 h-3.5 sm:w-4 sm:h-4 rounded-full bg-sky-400 border-2 border-white animate-pulse";
                 } else {
-                    dots[i].className = "w-4 h-4 rounded-full bg-slate-700 border-2 border-slate-600";
+                    dot.className = "w-3.5 h-3.5 sm:w-4 sm:h-4 rounded-full bg-slate-700 border-2 border-slate-600";
+                }
+            });
+        }
+
+        /**
+         * Yläpalkin KUUNTELE-painikkeen rämpytyksen esto (800 ms jäähy)
+         */
+        function handleReplaySpeech() {
+            if (gameState.speechCooldown) return;
+            gameState.speechCooldown = true;
+
+            const btn = document.getElementById('replay-audio-btn');
+            if (btn) btn.disabled = true;
+
+            speakCurrentWord();
+
+            setTimeout(() => {
+                gameState.speechCooldown = false;
+                if (btn) btn.disabled = false;
+            }, 800);
+        }
+
+        /**
+         * Lausuu nykyisen haettavan sanan suomenkielisellä puhesynteesillä
+         */
+        function speakCurrentWord() {
+            if (!gameState.currentWord) return;
+            const fullWord = (gameState.currentWord[0] + gameState.currentWord[1]).toLowerCase();
+
+            if ('speechSynthesis' in window) {
+                try {
+                    window.speechSynthesis.cancel();
+                    const utterance = new SpeechSynthesisUtterance(fullWord);
+                    utterance.lang = SPEECH_CONFIG.lang;
+                    utterance.rate = SPEECH_CONFIG.rate;
+                    utterance.pitch = SPEECH_CONFIG.pitch;
+
+                    const voices = window.speechSynthesis.getVoices();
+                    let selectedVoice = null;
+
+                    if (SPEECH_CONFIG.preferredVoiceName) {
+                        selectedVoice = voices.find(v =>
+                            v.name.toLowerCase().includes(SPEECH_CONFIG.preferredVoiceName.toLowerCase())
+                        );
+                    }
+                    if (!selectedVoice) {
+                        selectedVoice = voices.find(v => v.lang && v.lang.toLowerCase().startsWith('fi'));
+                    }
+                    if (selectedVoice) {
+                        utterance.voice = selectedVoice;
+                    }
+
+                    window.speechSynthesis.speak(utterance);
+                } catch (e) {
+                    console.warn("Puhesynteesi ei käytettävissä:", e);
                 }
             }
         }
 
-        function updateLiveScoreDisplay() {
-            const currentTotal = gameState.totalBasePoints + (gameState.roundResolved ? 0 : gameState.wordPoints);
-            document.getElementById('live-score').textContent = currentTotal;
-        }
-
-        function showFeedbackBanner(text, colorClass) {
+        /**
+         * Palautepalkin näyttö ja piilotus
+         */
+        function showFeedbackBanner(text, colorClass = "text-amber-300") {
             const el = document.getElementById('feedback-text');
+            if (!el) return;
             el.textContent = text;
             el.className = `font-black text-sm sm:text-lg tracking-wide ${colorClass} opacity-100 transition-opacity`;
         }
 
         function hideFeedbackBanner() {
             const el = document.getElementById('feedback-text');
+            if (!el) return;
+            el.classList.remove('opacity-100');
             el.classList.add('opacity-0');
         }
 
@@ -1022,7 +1112,7 @@
          * Vahvistus pelin keskeyttämiselle
          */
         function confirmExitGame() {
-            showModal("HALUATKO VARMASTI LOPETTAA TÄMÄN SARJAN?", [
+            showModal("HALUATKO VARMASTI LOPETTAA KESKEN SARJAN?", [
                 {
                     text: "KYLLÄ, LOPETA",
                     className: "bg-rose-500 text-white",
@@ -1030,63 +1120,99 @@
                         closeModal();
                         gameState.active = false;
                         stopFallingAnimation();
+                        clearTimeout(gameState.penaltyTimerId);
                         showView('view-menu');
                     }
                 },
                 {
                     text: "JATKA PELIÄ",
-                    className: "bg-emerald-500 text-slate-950",
+                    className: "bg-slate-600 text-white",
                     action: closeModal
                 }
             ]);
         }
 
-        /* =========================================================
-           SANALISTAN MUOKKAUS (LISÄYS, POISTO, OLETUKSEN PALAUTUS)
-           ========================================================= */
+        /**
+         * Konfettiefekti onnistuneen vastauksen ja sarjan päätteeksi
+         */
+        function launchConfetti() {
+            const colors = ['#34d399', '#fbbf24', '#38bdf8', '#f472b6', '#a78bfa'];
+            for (let i = 0; i < 28; i++) {
+                const conf = document.createElement('div');
+                conf.className = 'confetti';
+                conf.style.backgroundColor = colors[i % colors.length];
+                conf.style.left = `${Math.random() * 100}vw`;
+                conf.style.top = `-15px`;
+                document.body.appendChild(conf);
 
+                const destX = (Math.random() - 0.5) * 200;
+                const destY = window.innerHeight + 30;
+                const rot = Math.random() * 720;
+
+                const anim = conf.animate([
+                    { transform: 'translate(0, 0) rotate(0deg)', opacity: 1 },
+                    { transform: `translate(${destX}px, ${destY}px) rotate(${rot}deg)`, opacity: 0.2 }
+                ], {
+                    duration: 900 + Math.random() * 700,
+                    easing: 'cubic-bezier(0.25, 0.46, 0.45, 0.94)'
+                });
+
+                anim.onfinish = () => conf.remove();
+            }
+        }
+
+        /* =========================================================
+           SANALISTAN HALLINTA (LISÄYS, POISTO, PALAUTUS)
+           ========================================================= */
         function renderWordList() {
             const container = document.getElementById('word-list-container');
+            if (!container) return;
             container.innerHTML = '';
 
             wordList.forEach((pair, index) => {
                 const row = document.createElement('div');
-                row.className = "flex items-center justify-between bg-slate-800/90 border border-slate-700/80 rounded-xl px-3.5 py-2.5";
-                
-                row.innerHTML = `
-                    <div class="flex items-center gap-2">
-                        <span class="text-xs font-bold text-slate-500 w-6">${index + 1}.</span>
-                        <span class="font-black text-base sm:text-lg tracking-wider text-white">${pair[0]}<span class="text-emerald-400">-</span>${pair[1]}</span>
-                    </div>
-                    <button onclick="deleteWord(${index})" class="px-3 py-1.5 bg-rose-500/20 hover:bg-rose-500/40 text-rose-300 border border-rose-500/30 rounded-lg font-black text-xs transition-all" aria-label="Poista sana">
-                        POISTA
-                    </button>
-                `;
+                row.className = "flex items-center justify-between bg-slate-800/90 border border-slate-700 rounded-xl px-3.5 py-2.5";
+
+                const label = document.createElement('div');
+                label.className = "font-black text-base sm:text-lg tracking-wider text-white";
+                label.innerHTML = `<span class="text-slate-400 text-xs mr-2">${index + 1}.</span>${pair[0]}<span class="text-emerald-400">-</span>${pair[1]}`;
+
+                const delBtn = document.createElement('button');
+                delBtn.type = 'button';
+                delBtn.className = "px-3 py-1 bg-rose-500/20 hover:bg-rose-500 text-rose-300 hover:text-white rounded-lg font-black text-xs transition-colors";
+                delBtn.textContent = "POISTA";
+                delBtn.onclick = () => removeWordAtIndex(index);
+
+                row.appendChild(label);
+                row.appendChild(delBtn);
                 container.appendChild(row);
             });
-
             updateUIStats();
         }
 
         function addCustomWord() {
             const input = document.getElementById('new-word-input');
             const errEl = document.getElementById('word-error-msg');
-            const raw = input.value.trim().toUpperCase();
+            const raw = (input.value || '').trim().toUpperCase();
 
             errEl.classList.add('hidden');
 
-            // Tarkistetaan että sanassa on täsmälleen yksi tavuviiva
-            const parts = raw.split('-').map(p => p.trim()).filter(p => p.length > 0);
-            if (parts.length !== 2 || !/^[A-ZÅÄÖ]+$/.test(parts[0]) || !/^[A-ZÅÄÖ]+$/.test(parts[1])) {
-                errEl.textContent = "KIRJOITA KAKSITAVUINEN SANA TAVUVIIVALLA, ESIM. POT-KU";
+            const parts = raw.split('-').map(p => p.trim()).filter(Boolean);
+            if (parts.length !== 2 || parts[0].length < 1 || parts[1].length < 1) {
+                errEl.textContent = "KIRJOITA SANA KAKSITAVUISENA YHDELMÄVIIVALLA (ESIM. POT-KU).";
                 errEl.classList.remove('hidden');
                 return;
             }
 
-            // Tarkistetaan ettei sana ole jo listalla
+            if (!/^[A-ZÅÄÖ-]+$/.test(raw)) {
+                errEl.textContent = "KÄYTÄ VAIN KIRJAIMIA A–Ö JA YHTÄ TAVUVIIVAA.";
+                errEl.classList.remove('hidden');
+                return;
+            }
+
             const exists = wordList.some(w => w[0] === parts[0] && w[1] === parts[1]);
             if (exists) {
-                errEl.textContent = "TÄMÄ SANA ON JO LISTALLA!";
+                errEl.textContent = "TÄMÄ SANA ON JO SANALISTASSA!";
                 errEl.classList.remove('hidden');
                 return;
             }
@@ -1098,9 +1224,9 @@
             playTone(660, 0.1, 'sine');
         }
 
-        function deleteWord(index) {
+        function removeWordAtIndex(index) {
             if (wordList.length <= 5) {
-                showModal("LISTALLA ON OLTAVA VÄHINTÄÄN 5 SANAA!", [{ text: "OK", action: closeModal }]);
+                showModal("SANALISTASSA ON OLTAVA VÄHINTÄÄN 5 SANAA!", [{ text: "OK", action: closeModal }]);
                 return;
             }
             wordList.splice(index, 1);
@@ -1122,39 +1248,10 @@
                 },
                 {
                     text: "PERUUTA",
-                    className: "bg-slate-700 text-white",
+                    className: "bg-slate-600 text-white",
                     action: closeModal
                 }
             ]);
-        }
-
-        /* =========================================================
-           VISUAALISET EFEKTIT JA ÄÄNET (WEB AUDIO API & KONFETTI)
-           ========================================================= */
-
-        function launchConfetti() {
-            const colors = ['#10b981', '#38bdf8', '#fbbf24', '#f472b6', '#a78bfa'];
-            for (let i = 0; i < 38; i++) {
-                const conf = document.createElement('div');
-                conf.className = 'confetti';
-                conf.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
-                conf.style.left = `${Math.random() * 100}vw`;
-                conf.style.top = `-15px`;
-                document.body.appendChild(conf);
-
-                const destX = (Math.random() - 0.5) * 200;
-                const destY = window.innerHeight + 30;
-                const rot = Math.random() * 720;
-                const duration = 1200 + Math.random() * 1000;
-
-                conf.animate([
-                    { transform: 'translate(0, 0) rotate(0deg)', opacity: 1 },
-                    { transform: `translate(${destX}px, ${destY}px) rotate(${rot}deg)`, opacity: 0 }
-                ], {
-                    duration: duration,
-                    easing: 'cubic-bezier(0.25, 0.46, 0.45, 0.94)'
-                }).onfinish = () => conf.remove();
-            }
         }
 
         function initAudio() {
